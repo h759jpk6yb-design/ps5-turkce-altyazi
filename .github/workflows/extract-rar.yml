@@ -1,0 +1,40 @@
+
+name: RAR Arsivini Cikar
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Depoyu indir
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: RAR aracini kur
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unar
+
+      - name: RAR dosyasini cikar
+        run: |
+          RAR_FILE=$(find . -maxdepth 1 -type f -iname '*.rar' -print -quit)
+          if [ -z "$RAR_FILE" ]; then
+            echo "RAR dosyasi bulunamadi!"
+            exit 1
+          fi
+          mkdir -p extracted
+          unar -o extracted "$RAR_FILE"
+
+      - name: Cikarilan dosyalari depoya kaydet
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add extracted/
+          git commit -m "RAR arsivi otomatik cikarildi" || echo "Yeni dosya yok"
+          git push
