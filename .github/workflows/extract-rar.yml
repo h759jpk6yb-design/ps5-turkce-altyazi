@@ -1,5 +1,5 @@
 
-name: RAR Arsivini Cikar
+name: ZIP Arsivini Cikar
 
 on:
   workflow_dispatch:
@@ -13,28 +13,24 @@ jobs:
     steps:
       - name: Depoyu indir
         uses: actions/checkout@v4
-        with:
-          persist-credentials: true
 
-      - name: RAR aracini kur
+      - name: ZIP dosyasini bul ve cikar
         run: |
-          sudo apt-get update
-          sudo apt-get install -y unar
+          ZIP_FILE=$(find . -type f -iname '*.zip' ! -path './.git/*' -print -quit)
 
-      - name: RAR dosyasini cikar
-        run: |
-          RAR_FILE=$(find . -type f -iname '*.rar' ! -path './.git/*' -print -quit)
-          if [ -z "$RAR_FILE" ]; then
-            echo "RAR dosyasi bulunamadi!"
+          if [ -z "$ZIP_FILE" ]; then
+            echo "ZIP dosyasi bulunamadi!"
             exit 1
           fi
-          mkdir -p extracted
-          unar -o extracted "$RAR_FILE"
 
-      - name: Cikarilan dosyalari depoya kaydet
+          echo "Bulunan dosya: $ZIP_FILE"
+          mkdir -p extracted
+          unzip -o "$ZIP_FILE" -d extracted
+
+      - name: Dosyalari depoya kaydet
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add extracted/
-          git commit -m "RAR arsivi otomatik cikarildi" || echo "Yeni dosya yok"
+          git commit -m "ZIP arsivi cikarildi" || echo "Yeni dosya yok"
           git push
